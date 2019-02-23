@@ -146,7 +146,7 @@ static const CGFloat LNPopupBarDeveloperPanGestureThreshold = 0;
 
 @property (nonatomic, strong, readwrite) UIPanGestureRecognizer* popupInteractionGestureRecognizer;
 @property (nonatomic, strong, readwrite) LNPopupCloseButton* popupCloseButton;
-@property (nonatomic, strong) UIVisualEffectView* effectView;
+@property (nonatomic, strong) UIView* contentView;
 
 @end
 
@@ -158,10 +158,10 @@ static const CGFloat LNPopupBarDeveloperPanGestureThreshold = 0;
 	
 	if(self)
 	{
-		_effectView = [[UIVisualEffectView alloc] initWithEffect:nil];
-		_effectView.frame = self.bounds;
-		_effectView.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
-		[self addSubview:_effectView];
+		_contentView = [[UIView alloc] initWithFrame:CGRectZero];
+		_contentView.frame = self.bounds;
+		_contentView.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
+		[self addSubview:_contentView];
         
         _popupCloseButtonAutomaticallyUnobstructsTopBars = YES;
 	}
@@ -173,17 +173,12 @@ static const CGFloat LNPopupBarDeveloperPanGestureThreshold = 0;
 {
 	[super layoutSubviews];
 	
-	_effectView.frame = self.bounds;
+	_contentView.frame = self.bounds;
 }
 
 - (UIView *)contentView
 {
-	return _effectView.contentView;
-}
-
-- (void)setEffect:(UIVisualEffect*)effect
-{
-	[_effectView setEffect:effect];
+	return _contentView;
 }
 
 - (void)scrollViewDidScroll:(UIScrollView *)scrollView
@@ -302,8 +297,7 @@ LNPopupCloseButtonStyle _LNPopupResolveCloseButtonStyleFromCloseButtonStyle(LNPo
 		_bottomBar.frame = bottomBarFrame;
 	}
 	
-	[self.popupBar.toolbar setAlpha:1.0 - percent];
-	[self.popupBar.progressView setAlpha:1.0 - percent];
+	[self.popupBar setAlpha:1.0 - percent];
 	
 	_popupShadowView.alpha = percent;
 	if (percent > 0){
@@ -324,7 +318,24 @@ LNPopupCloseButtonStyle _LNPopupResolveCloseButtonStyleFromCloseButtonStyle(LNPo
 	
 	CGRect frame = self.popupContentView.bounds;
 	frame.size.height = MAX(_containerController.view.bounds.size.height, 0);
-	_containerController.popupContentViewController.view.frame = frame;
+	if (self.popupBar.isInlineWithTabBar){
+		_containerController.popupContentViewController.view.frame = frame;
+	} else {
+		CGFloat offset = [UIApplication sharedApplication].statusBarFrame.size.height + 15;
+		frame.origin.y += (offset * percent);
+		frame.size.height -= (offset * percent);
+		if (frame.size.height < 0)
+			frame.size.height = 0;
+		CAShapeLayer *maskLayer = (CAShapeLayer *)_containerController.popupContentViewController.view.layer.mask;
+		if (!maskLayer){
+			maskLayer = [CAShapeLayer layer];
+			_containerController.popupContentViewController.view.layer.mask = maskLayer;
+		}
+		_containerController.popupContentViewController.view.frame = frame;
+
+		maskLayer.frame = _containerController.popupContentViewController.view.bounds;
+		maskLayer.path = [UIBezierPath bezierPathWithRoundedRect:maskLayer.frame byRoundingCorners:(UIRectCornerTopLeft | UIRectCornerTopRight) cornerRadii:CGSizeMake(10, 10)].CGPath;
+	}
 	
 	[self _repositionPopupCloseButton];
 }
@@ -405,8 +416,6 @@ static CGFloat __smoothstep(CGFloat a, CGFloat b, CGFloat x)
 			
 			if(CGColorGetAlpha(_currentContentController.view.backgroundColor.CGColor) < 1.0)
 			{
-				//Support for iOS8, where this property was exposed as readonly.
-				[self.popupContentView setValue:[UIBlurEffect effectWithStyle:self.popupBar.backgroundStyle] forKey:@"effect"];
 				if(self.popupContentView.popupCloseButton.style == LNPopupCloseButtonStyleRound)
 				{
 					self.popupContentView.popupCloseButton.layer.shadowOpacity = 0.2;
@@ -414,7 +423,6 @@ static CGFloat __smoothstep(CGFloat a, CGFloat b, CGFloat x)
 			}
 			else
 			{
-				[self.popupContentView setValue:nil forKey:@"effect"];
 				if(self.popupContentView.popupCloseButton.style == LNPopupCloseButtonStyleRound)
 				{
 					self.popupContentView.popupCloseButton.layer.shadowOpacity = 0.1;
@@ -1034,7 +1042,11 @@ static CGFloat __smoothstep(CGFloat a, CGFloat b, CGFloat x)
             _popupCloseButtonTopConstraint.constant += CGRectGetHeight(possibleBar.bounds);
         else
             _popupCloseButtonTopConstraint.constant += 6;
-    }
+	} else {
+		if (!_popupBar.isInlineWithTabBar){
+			_popupCloseButtonTopConstraint.constant = _containerController.popupContentViewController.view.frame.origin.y + 12;
+		}
+	}
 	
 	if(startingTopConstant != _popupCloseButtonTopConstraint.constant)
 	{
