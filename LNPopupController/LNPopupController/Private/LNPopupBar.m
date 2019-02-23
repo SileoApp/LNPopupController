@@ -781,7 +781,7 @@ static inline __attribute__((always_inline)) UIBlurEffectStyle _LNBlurEffectStyl
 		if(_titleLabel == nil)
 		{
 			_titleLabel = [self _newMarqueeLabel];
-			_titleLabel.font = _resolvedStyle == LNPopupBarStyleProminent ? [UIFont systemFontOfSize:18 weight:UIFontWeightRegular] : [UIFont systemFontOfSize:12];
+			_titleLabel.font = _resolvedStyle == LNPopupBarStyleProminent ? [UIFont systemFontOfSize:13 weight:UIFontWeightRegular] : [UIFont systemFontOfSize:12];
 			[_titlesView addSubview:_titleLabel];
 		}
 		
@@ -796,7 +796,7 @@ static inline __attribute__((always_inline)) UIBlurEffectStyle _LNBlurEffectStyl
 		if(_subtitleLabel == nil)
 		{
 			_subtitleLabel = [self _newMarqueeLabel];
-			_subtitleLabel.font = _resolvedStyle == LNPopupBarStyleProminent ? [UIFont systemFontOfSize:14 weight:UIFontWeightRegular] : [UIFont systemFontOfSize:12];
+			_subtitleLabel.font = _resolvedStyle == LNPopupBarStyleProminent ? [UIFont systemFontOfSize:17 weight:UIFontWeightSemibold] : [UIFont systemFontOfSize:12];
 			[_titlesView addSubview:_subtitleLabel];
 		}
 		
@@ -828,6 +828,12 @@ static inline __attribute__((always_inline)) UIBlurEffectStyle _LNBlurEffectStyl
 		{
 			titleLabelFrame.origin.y -= _titleLabel.font.lineHeight / 2.1;
 			subtitleLabelFrame.origin.y += _subtitleLabel.font.lineHeight / 1.5;
+			
+			if (_isInlineWithTabBar)
+				titleLabelFrame.origin.y -= 2;
+			else
+				titleLabelFrame.origin.y -= 5;
+			subtitleLabelFrame.origin.y -= 4;
 		}
 		else
 		{
