@@ -221,6 +221,7 @@ LNPopupCloseButtonStyle _LNPopupResolveCloseButtonStyleFromCloseButtonStyle(LNPo
 	__kindof UIViewController* _currentContentController;
 	
 	UIView *_popupShadowView;
+	UIView *_popupScreenshotView;
 	
 	BOOL _dismissGestureStarted;
 	CGFloat _dismissStartingOffset;
@@ -283,6 +284,16 @@ LNPopupCloseButtonStyle _LNPopupResolveCloseButtonStyleFromCloseButtonStyle(LNPo
 - (void)_repositionPopupContentMovingBottomBar:(BOOL)bottomBar
 {
 	CGFloat percent = [self _percentFromPopupBarForBottomBarDisplacement];
+	if (percent > 0 && _popupScreenshotView.subviews.count == 0){
+		UIView *snapshot = [_containerController.view.subviews[0] snapshotViewAfterScreenUpdates:NO];
+		snapshot.layer.cornerRadius = 10;
+		snapshot.clipsToBounds = YES;
+		[_popupScreenshotView addSubview:snapshot];
+	} else if (percent == 0){
+		for (UIView *snapshot in _popupScreenshotView.subviews){
+			[snapshot removeFromSuperview];
+		}
+	}
 	
 	CGFloat barHeight = (_bottomBar.isHidden ? 0 : _bottomBar.bounds.size.height) + _cachedInsets.bottom;
 	CGFloat heightForContent = _containerController.view.bounds.size.height - (1.0 - percent) * barHeight;
@@ -299,7 +310,6 @@ LNPopupCloseButtonStyle _LNPopupResolveCloseButtonStyleFromCloseButtonStyle(LNPo
 	
 	[self.popupBar setAlpha:1.0 - percent];
 	
-	_popupShadowView.alpha = percent;
 	if (percent > 0){
 		_bottomBar.userInteractionEnabled = NO;
 	} else {
@@ -316,8 +326,19 @@ LNPopupCloseButtonStyle _LNPopupResolveCloseButtonStyleFromCloseButtonStyle(LNPo
 	
 	self.popupContentView.frame = contentFrame;
 	
+	if ([[UIDevice currentDevice] userInterfaceIdiom] == UIUserInterfaceIdiomPad){
+		_popupShadowView.alpha = percent * 0.5;
+	} else {
+		_popupShadowView.alpha = percent > 0 ? 1 : 0;
+		_popupScreenshotView.center = _containerController.view.center;
+		CGFloat maxScale = (20.0 + [[UIApplication sharedApplication] statusBarFrame].size.height/2.0) / _popupScreenshotView.bounds.size.width;
+		_popupScreenshotView.transform = CGAffineTransformMakeScale(1.0 - (maxScale * percent), 1.0 - (maxScale * percent));
+		_popupScreenshotView.alpha = 1.0 - (0.5 * percent);
+	}
+	
 	CGRect frame = self.popupContentView.bounds;
 	frame.size.height = MAX(_containerController.view.bounds.size.height, 0);
+	
 	if (self.popupBar.isInlineWithTabBar){
 		_containerController.popupContentViewController.view.frame = frame;
 	} else {
@@ -965,6 +986,7 @@ static CGFloat __smoothstep(CGFloat a, CGFloat b, CGFloat x)
 {
 	[self.popupBar removeFromSuperview];
 	[self.popupContentView removeFromSuperview];
+	[[self popupScreenshotView] removeFromSuperview];
 	[[self popupShadowView] removeFromSuperview];
 	
 	if([_bottomBar.superview isKindOfClass:[UIScrollView class]])
@@ -979,9 +1001,11 @@ static CGFloat __smoothstep(CGFloat a, CGFloat b, CGFloat x)
 		[self.popupBar.superview bringSubviewToFront:_bottomBar];
 		[self.popupBar.superview insertSubview:self.popupContentView belowSubview:self.popupBar];
 		[self.popupBar.superview insertSubview:_popupShadowView belowSubview:self.popupContentView];
+		[self.popupBar.superview insertSubview:_popupScreenshotView belowSubview:self.popupContentView];
 		if (self.popupBar.isInlineWithTabBar){
 			_popupShadowView.layer.zPosition = 500;
-			self.popupContentView.layer.zPosition = 501;
+			_popupScreenshotView.layer.zPosition = 501;
+			self.popupContentView.layer.zPosition = 502;
 		}
 	}
 	else
@@ -990,6 +1014,7 @@ static CGFloat __smoothstep(CGFloat a, CGFloat b, CGFloat x)
 		[_containerController.view bringSubviewToFront:self.popupBar];
 		[_containerController.view insertSubview:self.popupContentView belowSubview:self.popupBar];
 		[self.popupBar.superview insertSubview:_popupShadowView belowSubview:self.popupContentView];
+		[self.popupBar.superview insertSubview:_popupScreenshotView belowSubview:self.popupContentView];
 	}
 }
 
@@ -1150,13 +1175,31 @@ static CGFloat __smoothstep(CGFloat a, CGFloat b, CGFloat x)
 	}
 	
 	_popupShadowView = [[UIView alloc] initWithFrame:_containerController.view.bounds];
-	_popupShadowView.backgroundColor = [UIColor colorWithWhite:0 alpha:0.5];
+	_popupShadowView.backgroundColor = [UIColor colorWithWhite:0 alpha:1];
 	_popupShadowView.layer.masksToBounds = YES;
 	[_popupShadowView addGestureRecognizer:[[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(_closePopupContent)]];
 	
 	_popupShadowView.preservesSuperviewLayoutMargins = YES;
 	
 	return _popupShadowView;
+}
+
+- (UIView *)popupScreenshotView {
+	if ([[UIDevice currentDevice] userInterfaceIdiom] == UIUserInterfaceIdiomPad){
+		return nil;
+	}
+	if(_popupScreenshotView)
+	{
+		return _popupScreenshotView;
+	}
+
+	_popupScreenshotView = [[UIView alloc] initWithFrame:_containerController.view.bounds];
+	_popupScreenshotView.layer.masksToBounds = YES;
+	_popupScreenshotView.userInteractionEnabled = NO;
+
+	_popupScreenshotView.preservesSuperviewLayoutMargins = YES;
+
+	return _popupScreenshotView;
 }
 
 - (void)dealloc
