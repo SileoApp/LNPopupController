@@ -225,6 +225,8 @@ LNPopupCloseButtonStyle _LNPopupResolveCloseButtonStyleFromCloseButtonStyle(LNPo
 	__weak LNPopupItem* _currentPopupItem;
 	__kindof UIViewController* _currentContentController;
 	
+	UIView *_popupShadowView;
+	
 	BOOL _dismissGestureStarted;
 	CGFloat _dismissStartingOffset;
 	CGFloat _dismissScrollViewStartingContentOffset;
@@ -302,6 +304,13 @@ LNPopupCloseButtonStyle _LNPopupResolveCloseButtonStyleFromCloseButtonStyle(LNPo
 	
 	[self.popupBar.toolbar setAlpha:1.0 - percent];
 	[self.popupBar.progressView setAlpha:1.0 - percent];
+	
+	_popupShadowView.alpha = percent;
+	if (percent > 0){
+		_bottomBar.userInteractionEnabled = NO;
+	} else {
+		_bottomBar.userInteractionEnabled = YES;
+	}
 	
 	CGRect contentFrame = _containerController.view.bounds;
 	contentFrame.origin.x = self.popupBar.frame.origin.x;
@@ -948,6 +957,7 @@ static CGFloat __smoothstep(CGFloat a, CGFloat b, CGFloat x)
 {
 	[self.popupBar removeFromSuperview];
 	[self.popupContentView removeFromSuperview];
+	[[self popupShadowView] removeFromSuperview];
 	
 	if([_bottomBar.superview isKindOfClass:[UIScrollView class]])
 	{
@@ -960,12 +970,18 @@ static CGFloat __smoothstep(CGFloat a, CGFloat b, CGFloat x)
 		[self.popupBar.superview bringSubviewToFront:self.popupBar];
 		[self.popupBar.superview bringSubviewToFront:_bottomBar];
 		[self.popupBar.superview insertSubview:self.popupContentView belowSubview:self.popupBar];
+		[self.popupBar.superview insertSubview:_popupShadowView belowSubview:self.popupContentView];
+		if (self.popupBar.isInlineWithTabBar){
+			_popupShadowView.layer.zPosition = 500;
+			self.popupContentView.layer.zPosition = 501;
+		}
 	}
 	else
 	{
 		[_containerController.view addSubview:self.popupBar];
 		[_containerController.view bringSubviewToFront:self.popupBar];
 		[_containerController.view insertSubview:self.popupContentView belowSubview:self.popupBar];
+		[self.popupBar.superview insertSubview:_popupShadowView belowSubview:self.popupContentView];
 	}
 }
 
@@ -1113,6 +1129,22 @@ static CGFloat __smoothstep(CGFloat a, CGFloat b, CGFloat x)
 	_popupContentView.popupInteractionGestureRecognizer = [[LNPopupInteractionPanGestureRecognizer alloc] initWithTarget:self action:@selector(_popupBarPresentationByUserPanGestureHandler:) popupController:self];
 	
 	return _popupContentView;
+}
+
+- (UIView *)popupShadowView {
+	if(_popupShadowView)
+	{
+		return _popupShadowView;
+	}
+	
+	_popupShadowView = [[UIView alloc] initWithFrame:_containerController.view.bounds];
+	_popupShadowView.backgroundColor = [UIColor colorWithWhite:0 alpha:0.5];
+	_popupShadowView.layer.masksToBounds = YES;
+	[_popupShadowView addGestureRecognizer:[[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(_closePopupContent)]];
+	
+	_popupShadowView.preservesSuperviewLayoutMargins = YES;
+	
+	return _popupShadowView;
 }
 
 - (void)dealloc
