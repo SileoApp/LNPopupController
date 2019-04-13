@@ -1176,6 +1176,7 @@ static CGFloat __smoothstep(CGFloat a, CGFloat b, CGFloat x)
 	
 	_popupShadowView = [[UIView alloc] initWithFrame:_containerController.view.bounds];
 	_popupShadowView.backgroundColor = [UIColor colorWithWhite:0 alpha:1];
+	_popupShadowView.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
 	_popupShadowView.layer.masksToBounds = YES;
 	[_popupShadowView addGestureRecognizer:[[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(_closePopupContent)]];
 	
