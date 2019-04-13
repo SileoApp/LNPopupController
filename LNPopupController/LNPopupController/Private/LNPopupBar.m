@@ -161,9 +161,8 @@ static inline __attribute__((always_inline)) UIBlurEffectStyle _LNBlurEffectStyl
 		[self _layoutBarButtonItems];
 		_needsLabelsLayout = YES;
 		[self setNeedsLayout];
-		
-		[self._barDelegate _popupBarStyleDidChange:self];
 	}
+	[self._barDelegate _popupBarStyleDidChange:self];
 }
 
 - (void)setHighlighted:(BOOL)highlighted animated:(BOOL)animated
