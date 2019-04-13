@@ -299,7 +299,11 @@ static inline __attribute__((always_inline)) UIBlurEffectStyle _LNBlurEffectStyl
 	[self _layoutImageView];
 	
 	[UIView performWithoutAnimation:^{
-		_toolbar.frame = CGRectMake(0, 0, self.bounds.size.width, _LNPopupBarHeightForBarStyle(_resolvedStyle, self.isInlineWithTabBar, _customBarViewController));
+		CGRect frame = CGRectMake(0, 0, self.bounds.size.width, _LNPopupBarHeightForBarStyle(_resolvedStyle, self.isInlineWithTabBar, _customBarViewController));
+		if (self.isInlineWithTabBar){
+			frame.size.height = self.tabBarHeight;
+		}
+		_toolbar.frame = frame;
 		[_toolbar layoutIfNeeded];
 		
 		[self bringSubviewToFront:_highlightView];
