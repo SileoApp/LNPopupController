@@ -957,32 +957,8 @@ static CGFloat __smoothstep(CGFloat a, CGFloat b, CGFloat x)
 	{
 		self.popupBar.translucent = [(id<_LNPopupBarSupport>)_bottomBar isTranslucent];
 	}
-	
-#ifndef LNPopupControllerEnforceStrictClean
-	//backgroundView
-	static NSString* const bV = @"X2JhY2tncm91bmRWaWV3";
-	//backgroundView.shadowView.backgroundColor
-	static NSString* const bVsVbC = @"YmFja2dyb3VuZFZpZXcuc2hhZG93Vmlldy5iYWNrZ3JvdW5kQ29sb3I=";
-	
-	NSString* str1 = _LNPopupDecodeBase64String(bV);
-	
-	if([_bottomBar respondsToSelector:NSSelectorFromString(str1)])
-	{
-		NSString* str2 = _LNPopupDecodeBase64String(bVsVbC);
-		
-		if([[NSProcessInfo processInfo] operatingSystemVersion].majorVersion >= 10)
-		{
-			UIColor *color = [_bottomBar valueForKeyPath:str2];
-			if (!color)
-				color = [UIColor colorWithWhite:0 alpha:0.29];
-			self.popupBar.systemShadowColor = color;
-		}
-		else
-		{
-			self.popupBar.systemShadowColor = [UIColor lightGrayColor];
-		}
-	}
-#endif
+    
+    self.popupBar.systemShadowColor = [UIColor lightGrayColor];
 }
 
 - (void)_movePopupBarAndContentToBottomBarSuperview
