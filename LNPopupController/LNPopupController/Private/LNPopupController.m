@@ -331,7 +331,12 @@ LNPopupCloseButtonStyle _LNPopupResolveCloseButtonStyleFromCloseButtonStyle(LNPo
 	} else {
 		_popupShadowView.alpha = percent > 0 ? 1 : 0;
 		_popupScreenshotView.center = _containerController.view.center;
-		CGFloat maxScale = (20.0 + [[UIApplication sharedApplication] statusBarFrame].size.height/2.0) / _popupScreenshotView.bounds.size.width;
+        #if TARGET_MACOS_CATALYST
+        CGFloat sbh = _popupScreenshotView.window.windowScene.statusBarManager.statusBarFrame.size.height;
+        #else
+        CGFloat sbh = [UIApplication sharedApplication].statusBarFrame.size.height;
+        #endif
+		CGFloat maxScale = (20.0 + sbh/2.0) / _popupScreenshotView.bounds.size.width;
 		_popupScreenshotView.transform = CGAffineTransformMakeScale(1.0 - (maxScale * percent), 1.0 - (maxScale * percent));
 		_popupScreenshotView.alpha = 1.0 - (0.5 * percent);
 	}
@@ -342,7 +347,12 @@ LNPopupCloseButtonStyle _LNPopupResolveCloseButtonStyleFromCloseButtonStyle(LNPo
 	if (self.popupBar.isInlineWithTabBar){
 		_containerController.popupContentViewController.view.frame = frame;
 	} else {
-		CGFloat offset = [UIApplication sharedApplication].statusBarFrame.size.height + 15;
+        #if TARGET_MACOS_CATALYST
+        CGFloat height = self.popupContentView.window.windowScene.statusBarManager.statusBarFrame.size.height;
+        #else
+        CGFloat height = [UIApplication sharedApplication].statusBarFrame.size.height;
+        #endif
+		CGFloat offset = height + 15;
 		frame.origin.y += (offset * percent);
 		frame.size.height -= (offset * percent);
 		if (frame.size.height < 0)
@@ -710,7 +720,12 @@ static CGFloat __smoothstep(CGFloat a, CGFloat b, CGFloat x)
 			} transitionOriginatedByUser:NO];
 		}
 		
-		CGFloat statusBarHeightThreshold = UIApplication.sharedApplication.statusBarFrame.size.height / 2;
+        #if TARGET_MACOS_CATALYST
+        CGFloat height = _popupContentView.window.windowScene.statusBarManager.statusBarFrame.size.height;
+        #else
+        CGFloat height = [UIApplication sharedApplication].statusBarFrame.size.height;
+        #endif
+		CGFloat statusBarHeightThreshold = height / 2;
 		
 		if((_statusBarThresholdDir == 1 && currentCenterY < targetCenterY && _popupContentView.frame.origin.y >= statusBarHeightThreshold)
 		   || (_statusBarThresholdDir == -1 && currentCenterY > targetCenterY && _popupContentView.frame.origin.y < statusBarHeightThreshold))
@@ -1034,7 +1049,12 @@ static CGFloat __smoothstep(CGFloat a, CGFloat b, CGFloat x)
 	_popupCloseButtonTopConstraint.constant += windowTopSafeAreaInset;
 	if(windowTopSafeAreaInset == 0)
 	{
-		_popupCloseButtonTopConstraint.constant += (_containerController.popupContentViewController.prefersStatusBarHidden ? 0 : [UIApplication sharedApplication].statusBarFrame.size.height);
+        #if TARGET_MACOS_CATALYST
+        CGFloat height = _popupContentView.window.windowScene.statusBarManager.statusBarFrame.size.height;
+        #else
+        CGFloat height = [UIApplication sharedApplication].statusBarFrame.size.height;
+        #endif
+		_popupCloseButtonTopConstraint.constant += (_containerController.popupContentViewController.prefersStatusBarHidden ? 0 : height);
 	}
 	
     
@@ -1051,7 +1071,8 @@ static CGFloat __smoothstep(CGFloat a, CGFloat b, CGFloat x)
 			_popupCloseButtonTopConstraint.constant = _containerController.popupContentViewController.view.frame.origin.y + 12;
 		}
 	}
-	
+    #if TARGET_OS_MACCATALYST
+    #else
 	if(startingTopConstant != _popupCloseButtonTopConstraint.constant)
 	{
 		[_popupContentView setNeedsUpdateConstraints];
@@ -1059,6 +1080,7 @@ static CGFloat __smoothstep(CGFloat a, CGFloat b, CGFloat x)
 			[_popupContentView layoutIfNeeded];
 		} completion:nil];
 	}
+    #endif
 }
 
 - (void)_setUpCloseButtonForPopupContentView
@@ -1188,7 +1210,10 @@ static CGFloat __smoothstep(CGFloat a, CGFloat b, CGFloat x)
 	
 	if(_previewingContext)
 	{
+        #if TARGET_OS_MACCATALYST
+        #else
 		[_containerController unregisterForPreviewingWithContext:_previewingContext];
+        #endif
 	}
 	
 	if(_popupBar)
@@ -1270,7 +1295,10 @@ static void __LNPopupControllerDeeplyEnumerateSubviewsUsingBlock(UIView* view, v
 		
 		if([[NSProcessInfo processInfo] operatingSystemVersion].majorVersion >= 9)
 		{
+            #if TARGET_OS_MACCATALYST
+            #else
 			_previewingContext = [_containerController registerForPreviewingWithDelegate:self sourceView:self.popupBarStorage];
+            #endif
 		}
 		
 		[self _movePopupBarAndContentToBottomBarSuperview];
