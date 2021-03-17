@@ -384,8 +384,12 @@ static inline __attribute__((always_inline)) UIEdgeInsets _LNUserSafeAreas(id se
 	{
 		vcToCheckForPopupPresentation = [self _findChildInPopupPresentation];
 	}
-	
-	CGFloat statusBarHeightThreshold = UIApplication.sharedApplication.statusBarFrame.size.height / 2;
+    #if TARGET_MACOS_CATALYST
+    CGFloat sbh = self.view.window.windowScene.statusBarManager.statusBarFrame.size.height;
+    #else
+    CGFloat sbh = [UIApplication sharedApplication].statusBarFrame.size.height;
+    #endif
+	CGFloat statusBarHeightThreshold = sbh / 2;
 	
 	if((vcToCheckForPopupPresentation._ln_popupController_nocreate.popupControllerTargetState == LNPopupPresentationStateOpen) ||
 	   (vcToCheckForPopupPresentation._ln_popupController_nocreate.popupControllerTargetState > LNPopupPresentationStateClosed && vcToCheckForPopupPresentation._ln_popupController_nocreate.popupContentView.frame.origin.y <= statusBarHeightThreshold))
@@ -439,12 +443,15 @@ static inline __attribute__((always_inline)) UIEdgeInsets _LNUserSafeAreas(id se
 {
 	if(self.popupContentViewController)
 	{
+        #if TARGET_OS_MACCATALYST
+        #else
 		dispatch_async(dispatch_get_main_queue(), ^{
 			[UIView animateWithDuration:UIApplication.sharedApplication.statusBarOrientationAnimationDuration delay:0.0 usingSpringWithDamping:500 initialSpringVelocity:0.0 options: UIViewAnimationOptionLayoutSubviews | UIViewAnimationOptionAllowUserInteraction | UIViewAnimationOptionAllowAnimatedContent animations:^{
 				[self.popupContentViewController _uLFSBAIO];
 				[self._ln_popupController_nocreate _repositionPopupCloseButton];
 			} completion:nil];
 		});
+        #endif
 	}
 }
 
@@ -468,7 +475,12 @@ static inline __attribute__((always_inline)) UIEdgeInsets _LNUserSafeAreas(id se
 		
 		if([self _isContainedInPopupController])
 		{
-			insets.top = self.prefersStatusBarHidden == NO ? [[UIApplication sharedApplication] statusBarFrame].size.height : 0;
+            #if TARGET_MACOS_CATALYST
+            CGFloat height = self.view.window.windowScene.statusBarManager.statusBarFrame.size.height;
+            #else
+            CGFloat height = [UIApplication sharedApplication].statusBarFrame.size.height;
+            #endif
+			insets.top = self.prefersStatusBarHidden == NO ? height : 0;
 			insets.bottom = 0;
 		}
 	}
@@ -500,7 +512,12 @@ static inline __attribute__((always_inline)) UIEdgeInsets _LNUserSafeAreas(id se
 	{
 		if([controller _isContainedInPopupController])
 		{
-			insets.top += controller.prefersStatusBarHidden == NO ? [[UIApplication sharedApplication] statusBarFrame].size.height : 0;
+            #if TARGET_MACOS_CATALYST
+            CGFloat height = self.view.window.windowScene.statusBarManager.statusBarFrame.size.height;
+            #else
+            CGFloat height = [UIApplication sharedApplication].statusBarFrame.size.height;
+            #endif
+			insets.top += controller.prefersStatusBarHidden == NO ? height : 0;
 			insets.bottom = 0;
 			*absolute = YES;
 			
