@@ -245,11 +245,11 @@
 			};
 			buildConfigurationList = 39DB52DF1B5823330061C589 /* Build configuration list for PBXProject "LNPopupController" */;
 			compatibilityVersion = "Xcode 3.2";
-			developmentRegion = English;
+			developmentRegion = en;
 			hasScannedForEncodings = 0;
 			knownRegions = (
-				English,
 				en,
+				Base,
 			);
 			mainGroup = 39DB52DB1B5823330061C589;
 			productRefGroup = 39DB52E61B5823330061C589 /* Products */;
