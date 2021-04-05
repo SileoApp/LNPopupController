@@ -1036,8 +1036,10 @@ static CGFloat __smoothstep(CGFloat a, CGFloat b, CGFloat x)
 
 - (void)_repositionPopupCloseButton
 {
+    #if TARGET_OS_MACCATALYST
+    #else
 	CGFloat startingTopConstant = _popupCloseButtonTopConstraint.constant;
-	
+    #endif
 	_popupCloseButtonTopConstraint.constant = _popupContentView.popupCloseButton.style == LNPopupCloseButtonStyleRound ? 12 : 8;
 	
 	CGFloat windowTopSafeAreaInset = 0;
