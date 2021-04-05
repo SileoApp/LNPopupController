@@ -331,7 +331,7 @@ LNPopupCloseButtonStyle _LNPopupResolveCloseButtonStyleFromCloseButtonStyle(LNPo
 	} else {
 		_popupShadowView.alpha = percent > 0 ? 1 : 0;
 		_popupScreenshotView.center = _containerController.view.center;
-        #if TARGET_MACOS_CATALYST
+        #if TARGET_OS_MACCATALYST
         CGFloat sbh = _popupScreenshotView.window.windowScene.statusBarManager.statusBarFrame.size.height;
         #else
         CGFloat sbh = [UIApplication sharedApplication].statusBarFrame.size.height;
@@ -347,7 +347,7 @@ LNPopupCloseButtonStyle _LNPopupResolveCloseButtonStyleFromCloseButtonStyle(LNPo
 	if (self.popupBar.isInlineWithTabBar){
 		_containerController.popupContentViewController.view.frame = frame;
 	} else {
-        #if TARGET_MACOS_CATALYST
+        #if TARGET_OS_MACCATALYST
         CGFloat height = self.popupContentView.window.windowScene.statusBarManager.statusBarFrame.size.height;
         #else
         CGFloat height = [UIApplication sharedApplication].statusBarFrame.size.height;
@@ -720,7 +720,7 @@ static CGFloat __smoothstep(CGFloat a, CGFloat b, CGFloat x)
 			} transitionOriginatedByUser:NO];
 		}
 		
-        #if TARGET_MACOS_CATALYST
+        #if TARGET_OS_MACCATALYST
         CGFloat height = _popupContentView.window.windowScene.statusBarManager.statusBarFrame.size.height;
         #else
         CGFloat height = [UIApplication sharedApplication].statusBarFrame.size.height;
@@ -1049,7 +1049,7 @@ static CGFloat __smoothstep(CGFloat a, CGFloat b, CGFloat x)
 	_popupCloseButtonTopConstraint.constant += windowTopSafeAreaInset;
 	if(windowTopSafeAreaInset == 0)
 	{
-        #if TARGET_MACOS_CATALYST
+        #if TARGET_OS_MACCATALYST
         CGFloat height = _popupContentView.window.windowScene.statusBarManager.statusBarFrame.size.height;
         #else
         CGFloat height = [UIApplication sharedApplication].statusBarFrame.size.height;

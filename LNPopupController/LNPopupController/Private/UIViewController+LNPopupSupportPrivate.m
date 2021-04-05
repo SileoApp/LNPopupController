@@ -384,7 +384,7 @@ static inline __attribute__((always_inline)) UIEdgeInsets _LNUserSafeAreas(id se
 	{
 		vcToCheckForPopupPresentation = [self _findChildInPopupPresentation];
 	}
-    #if TARGET_MACOS_CATALYST
+    #if TARGET_OS_MACCATALYST
     CGFloat sbh = self.view.window.windowScene.statusBarManager.statusBarFrame.size.height;
     #else
     CGFloat sbh = [UIApplication sharedApplication].statusBarFrame.size.height;
@@ -475,7 +475,7 @@ static inline __attribute__((always_inline)) UIEdgeInsets _LNUserSafeAreas(id se
 		
 		if([self _isContainedInPopupController])
 		{
-            #if TARGET_MACOS_CATALYST
+            #if TARGET_OS_MACCATALYST
             CGFloat height = self.view.window.windowScene.statusBarManager.statusBarFrame.size.height;
             #else
             CGFloat height = [UIApplication sharedApplication].statusBarFrame.size.height;
@@ -512,7 +512,7 @@ static inline __attribute__((always_inline)) UIEdgeInsets _LNUserSafeAreas(id se
 	{
 		if([controller _isContainedInPopupController])
 		{
-            #if TARGET_MACOS_CATALYST
+            #if TARGET_OS_MACCATALYST
             CGFloat height = self.view.window.windowScene.statusBarManager.statusBarFrame.size.height;
             #else
             CGFloat height = [UIApplication sharedApplication].statusBarFrame.size.height;
