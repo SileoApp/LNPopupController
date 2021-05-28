@@ -15,10 +15,6 @@
 #import "_LNPopupBase64Utils.h"
 @import ObjectiveC;
 
-void __LNPopupControllerOutOfWindowHierarchy()
-{
-}
-
 static const CGFloat LNPopupBarGestureHeightPercentThreshold = 0.2;
 static const CGFloat LNPopupBarDeveloperPanGestureThreshold = 0;
 
